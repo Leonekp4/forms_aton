@@ -14,17 +14,34 @@
             <label>Matrícula:</label>
             <input v-model="formData.usuario.matricula" type="text" placeholder="Digite sua matrícula">
           </div>
+
           <div class="field">
-            <label>Célula:</label>
-            <input v-model="formData.usuario.celula" type="text" placeholder="Identifique a célula">
+            <label>Nome:</label>
+            <input v-model="formData.usuario.nome" type="text" placeholder="Nome">
           </div>
+
           <div class="field">
             <label>Turno:</label>
-            <input v-model="formData.usuario.turno" type="text" placeholder="Ex: 1º Turno">
+            <select v-model="formData.usuario.turno" class="custom-select">
+              <option value="" disabled selected>Selecione o turno</option>
+              <option v-for="op in opcoes.turnos" :key="op" :value="op">{{ op }}</option>
+            </select>
           </div>
+
+          <div class="field">
+            <label>Célula:</label>
+            <select v-model="formData.usuario.celula" class="custom-select">
+              <option value="" disabled selected>Selecione a célula</option>
+              <option v-for="op in opcoes.celulas" :key="op" :value="op">{{ op }}</option>
+            </select>
+          </div>
+
           <div class="field">
             <label>Máquina:</label>
-            <input v-model="formData.usuario.maquina" type="text" readonly>
+            <select v-model="formData.usuario.maquina" class="custom-select">
+              <option value="" disabled selected>Selecione a máquina</option>
+              <option v-for="op in opcoes.maquinas" :key="op" :value="op">{{ op }}</option>
+            </select>
           </div>
         </div>
       </section>
@@ -32,12 +49,12 @@
       <section class="checklist-section">
         <h2>Checklist Operacional</h2>
         <div class="checklist-grid">
-          <div v-for="(item, index) in checklistItems" :key="index" class="item-card">
+          <div v-for="(item, index) in checklistData" :key="index" class="item-card">
             
             <div class="item-main">
               <span class="item-text">
                 <span class="item-number">{{ index + 1 }}</span>
-                {{ item }}
+                {{ item.pergunta }}
               </span>
 
               <div class="status-selector">
@@ -57,17 +74,9 @@
               <div v-if="formData.respostas[index].status === 'NC'" class="nc-details">
                 <p class="nc-title">Identifique a irregularidade:</p>
                 <div class="nc-options">
-                  <label class="checkbox-label">
-                    <input type="checkbox" value="a" v-model="formData.respostas[index].falhas">
-                    Opção A
-                  </label>
-                  <label class="checkbox-label">
-                    <input type="checkbox" value="b" v-model="formData.respostas[index].falhas">
-                    Opção B
-                  </label>
-                  <label class="checkbox-label">
-                    <input type="checkbox" value="c" v-model="formData.respostas[index].falhas">
-                    Opção C
+                  <label v-for="falha in item.opcoesFalha" :key="falha.id" class="checkbox-label">
+                    <input type="checkbox" :value="falha.label" v-model="formData.respostas[index].falhas">
+                    {{ falha.label }}
                   </label>
                 </div>
               </div>
@@ -86,38 +95,123 @@
 <script setup>
 import { reactive } from 'vue'
 
-const checklistItems = [
-  "Verificar emergências, botão, barreiras de luz e portas das pinças",
-  "Verificar pressão de alimentação da máquina (7 a 8 bar)",
-  "Verificar limpeza e lubrificação do mandrino",
-  "Verificar vazador (falta, altura do vazador, colocação de atilhos)",
-  "Verificar a última peça cortada no teste de qualidade",
-  "Verificar tapete (material ou item inconforme)",
-  "Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)"
+// Opções para os campos de seleção
+const opcoes = {
+  celulas: ["0000", "1111"],
+  turnos: ["Turno A", "Turno B", "Turno C"],
+  maquinas: [
+    "Atom 1 - Pat:0133165", 
+    "Atom 2 - Pat:0133424", 
+    "Atom 3 - Pat:0091282", 
+    "Atom 4 - Pat:0101703", 
+    "Atom 5 - Pat:0050254", 
+    "Atom 6 - Pat:0116035", 
+    "Atom 7 - Pat:0115997",
+    "Atom 8 - Pat:0133164"
+  ]
+}
+
+const checklistData = [
+  {
+    pergunta: "Verificar emergências, botão, barreiras de luz e portas das pinças",
+    opcoesFalha: [
+      { id: 'a', label: 'Botão travado' },
+      { id: 'b', label: 'Barreira obstruída' },
+      { id: 'c', label: 'Porta sem trava' }
+    ]
+  },
+  {
+    pergunta: "Verificar pressão de alimentação da máquina ( 7 a 8 bar )",
+    opcoesFalha: [
+      { id: 'a', label: 'Pressão menor que 7 bar' },
+      { id: 'b', label: 'Pressão maior que 8 bar' },
+      { id: 'c', label: 'Vazamento de ar' }
+    ]
+  },
+  {
+    pergunta: "Verificar limpeza e lubrificação do mandrino",
+    opcoesFalha: [
+      { id: 'a', label: 'Limpeza' },
+      { id: 'b', label: 'Lubrificação' },
+      { id: 'c', label: 'Mandrino' }
+    ]
+  },
+  {
+    pergunta: "Verificar vazador (falta, altura do vazador, colocação de atilhos)",
+    opcoesFalha: [
+      { id: 'a', label: 'Vazador faltando' },
+      { id: 'b', label: 'Altura incorreta' },
+      { id: 'c', label: 'Atilhos gastos' }
+    ]
+  },
+  {
+    pergunta: "Verificar a última peça cortada no teste de qualidade",
+    opcoesFalha: [
+      { id: 'a', label: 'Peça com rebarba' },
+      { id: 'b', label: 'Medida fora' },
+      { id: 'c', label: 'Material rasgado' }
+    ]
+  },
+  {
+    pergunta: "Verificar tapete (material ou item inconforme)",
+    opcoesFalha: [
+      { id: 'a', label: 'Tapete danificado' },
+      { id: 'b', label: 'Sujeira acumulada' },
+      { id: 'c', label: 'Material preso' }
+    ]
+  },
+  {
+    pergunta: "Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)",
+    opcoesFalha: [
+      { id: 'a', label: 'Chave faltando' },
+      { id: 'b', label: 'Vazadores faltando' },
+      { id: 'c', label: 'Lâminas faltando' }
+    ]
+  }
 ]
 
-// Estado inicial reativo
 const formData = reactive({
   usuario: {
     matricula: '',
     celula: '',
     turno: '',
-    maquina: 'ATOM'
+    maquina: ''
   },
-  respostas: checklistItems.map(() => ({
-    status: '', // Armazena 'C' ou 'NC'
-    falhas: []  // Armazena ['a', 'b', 'c']
+  respostas: checklistData.map(() => ({
+    status: '',
+    falhas: []
   }))
 })
 
 const handleSubmit = () => {
-  // Aqui você enviaria os dados para sua API
-  console.log("Enviando Dados:", JSON.parse(JSON.stringify(formData)))
+  console.log("Dados Enviados:", JSON.parse(JSON.stringify(formData)))
   alert("Checklist enviado com sucesso!")
 }
 </script>
 
 <style scoped>
+
+.custom-select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background-color: #eee;
+  color: black;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none; /* Remove a seta padrão para estilizar */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 1em;
+}
+
+.custom-select:focus {
+  border-color: #9b39cc;
+  background-color: #fff;
+}
+
 .container {
   max-width: 900px;
   margin: 0 auto;
@@ -126,7 +220,6 @@ const handleSubmit = () => {
   min-height: 100vh;
 }
 
-/* Header */
 .header {
   background: #9b39cc;
   color: white;
@@ -137,7 +230,6 @@ const handleSubmit = () => {
 .header h2 { margin: 5px 0; font-size: 20px; color: #000; opacity: 0.8; }
 .header p { margin-top: 10px; font-size: 14px; }
 
-/* Form */
 .form { padding: 20px; }
 h2 {
   font-size: 18px;
@@ -147,7 +239,6 @@ h2 {
   margin: 30px 0 15px;
 }
 
-/* Grid de Usuário */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -155,16 +246,22 @@ h2 {
 }
 .field { display: flex; flex-direction: column; }
 .field label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+
 .field input {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid #ccc;
   background-color: #eee;
+  color: black;
   outline: none;
+  font-size: 14px;
 }
-.field input:focus { border-color: #9b39cc; background-color: #fff; }
+.field input:focus { 
+  border-color: #9b39cc; 
+  background-color: #fff; 
+  color: black;
+}
 
-/* Checklist Cards */
 .item-card {
   background: white;
   border-radius: 12px;
@@ -176,12 +273,19 @@ h2 {
 
 .item-main {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 15px;
+  gap: 20px;
 }
 
-.item-text { font-size: 15px; color: #333; flex: 1; padding-right: 15px; }
+.item-text { 
+  font-size: 15px; 
+  color: #333; flex: 1; 
+  padding-right: 15px; 
+  text-align: left;
+}
+
 .item-number {
   background: #9b39cc;
   color: white;
@@ -191,7 +295,6 @@ h2 {
   font-weight: bold;
 }
 
-/* Seleção C/NC */
 .status-selector { display: flex; gap: 10px; }
 .status-btn { cursor: pointer; }
 .status-btn input { display: none; }
@@ -220,7 +323,6 @@ h2 {
   color: white;
 }
 
-/* Área Não Conforme */
 .nc-details {
   background-color: #fff5f5;
   padding: 15px;
@@ -239,10 +341,10 @@ h2 {
   gap: 8px;
   font-size: 14px;
   cursor: pointer;
+  color: black;
 }
 .checkbox-label input { width: 18px; height: 18px; cursor: pointer; }
 
-/* Botão Enviar */
 .footer-actions { margin-top: 30px; text-align: center; }
 .btn-submit {
   background: #9b39cc;
@@ -259,7 +361,6 @@ h2 {
 }
 .btn-submit:hover { background: #812ba3; }
 
-/* Animação */
 .slide-enter-active { transition: all 0.3s ease-out; }
 .slide-enter-from { opacity: 0; transform: translateY(-10px); }
 </style>
