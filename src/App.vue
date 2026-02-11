@@ -6,31 +6,29 @@
       <p>Inspeção diária realizada pelo operador ou liderança.</p>
     </header>
 
-    <form class="form" @submit.prevent="handleSubmit">
+    <div class="form">
       <section class="user-info">
         <h2>Usuário / Colaborador</h2>
         <div class="grid">
           <div class="field">
             <label>Matrícula:</label>
-            <input v-model="formData.usuario.matricula" type="text" placeholder="Digite sua matrícula">
+            <input @keyup.enter="buscaDadosColaborador" v-model="formData.usuario.matricula" type="text"
+              placeholder="Digite sua matrícula" required>
           </div>
 
           <div class="field">
             <label>Nome:</label>
-            <input v-model="formData.usuario.nome" type="text" placeholder="Nome">
+            <span>{{ formData.usuario.nome }}</span>
           </div>
 
           <div class="field">
-            <label>Turno:</label>
-            <select v-model="formData.usuario.turno" class="custom-select">
-              <option value="" disabled selected>Selecione o turno</option>
-              <option v-for="op in opcoes.turnos" :key="op" :value="op">{{ op }}</option>
-            </select>
+            <label>Gerente:</label>
+            <span>{{ formData.usuario.gerente }}</span>
           </div>
 
           <div class="field">
             <label>Célula:</label>
-            <select v-model="formData.usuario.celula" class="custom-select">
+            <select v-model="formData.usuario.celula" class="custom-select" required>
               <option value="" disabled selected>Selecione a célula</option>
               <option v-for="op in opcoes.celulas" :key="op" :value="op">{{ op }}</option>
             </select>
@@ -38,7 +36,7 @@
 
           <div class="field">
             <label>Máquina:</label>
-            <select v-model="formData.usuario.maquina" class="custom-select">
+            <select v-model="formData.usuario.maquina" class="custom-select" required>
               <option value="" disabled selected>Selecione a máquina</option>
               <option v-for="op in opcoes.maquinas" :key="op" :value="op">{{ op }}</option>
             </select>
@@ -50,7 +48,7 @@
         <h2>Checklist Operacional</h2>
         <div class="checklist-grid">
           <div v-for="(item, index) in checklistData" :key="index" class="item-card">
-            
+
             <div class="item-main">
               <span class="item-text">
                 <span class="item-number">{{ index + 1 }}</span>
@@ -62,7 +60,7 @@
                   <input type="radio" :name="'status-' + index" value="C" v-model="formData.respostas[index].status">
                   <span class="circle">C</span>
                 </label>
-                
+
                 <label class="status-btn nao-conforme">
                   <input type="radio" :name="'status-' + index" value="NC" v-model="formData.respostas[index].status">
                   <span class="circle">NC</span>
@@ -84,28 +82,29 @@
           </div>
         </div>
       </section>
-      
+
       <div class="footer-actions">
-        <button type="submit" class="btn-submit">Enviar Checklist</button>
+        <button @click="handleSubmit" class="btn-submit">Enviar Checklist</button>
       </div>
-    </form>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive } from 'vue'
+import axios from "axios"
 
 // Opções para os campos de seleção
 const opcoes = {
   celulas: ["0000", "1111"],
   turnos: ["Turno A", "Turno B", "Turno C"],
   maquinas: [
-    "Atom 1 - Pat:0133165", 
-    "Atom 2 - Pat:0133424", 
-    "Atom 3 - Pat:0091282", 
-    "Atom 4 - Pat:0101703", 
-    "Atom 5 - Pat:0050254", 
-    "Atom 6 - Pat:0116035", 
+    "Atom 1 - Pat:0133165",
+    "Atom 2 - Pat:0133424",
+    "Atom 3 - Pat:0091282",
+    "Atom 4 - Pat:0101703",
+    "Atom 5 - Pat:0050254",
+    "Atom 6 - Pat:0116035",
     "Atom 7 - Pat:0115997",
     "Atom 8 - Pat:0133164"
   ]
@@ -175,7 +174,8 @@ const formData = reactive({
     matricula: '',
     celula: '',
     turno: '',
-    maquina: ''
+    maquina: '',
+    gerente: ''
   },
   respostas: checklistData.map(() => ({
     status: '',
@@ -184,13 +184,71 @@ const formData = reactive({
 })
 
 const handleSubmit = () => {
+  // 1. Verificaer campos do usuário 
+  const { matricula, nome, turno, celula, maquina } = formData.usuario
+  if (!matricula || !nome || !turno || !celula || !maquina) {
+    alert("Por fazor, preencha todos os dados do Usuário")
+    return
+  }
+
+  // 2 . Veriaficar se todos os itens do checklist foram marcados com (C ou NC)
+  const incompleto = formData.respostas.some(resp => resp.status === '')
+  if (incompleto) {
+    alert("Por favor, responda todos os itens do checklist antes de enviar.")
+    return
+  }
+
+  // 3. Verificar se os itens NC possuem pelos menos uma opção marcada.
+  const semFalhas = formData.respostas.some(resp => resp.status === 'NC' && resp.falhas.length === 0)
+  if (semFalhas) {
+    alert("Para intens 'Não Conforme', selecione pelo menos uma opção")
+    return
+  }
+
+  // Se estiver preenchidos todos os itens, envia
   console.log("Dados Enviados:", JSON.parse(JSON.stringify(formData)))
   alert("Checklist enviado com sucesso!")
+
+  // Limpar formulário
+  // limpar dados do usuário
+  formData.usuario.matricula = ''
+  formData.usuario.nome = ''
+  formData.usuario.turno = ''
+  formData.usuario.celula = ''
+  formData.usuario.maquina = ''
+
+  // limpar as respostas do Checklist
+  formData.respostas.forEach(resp => {
+    resp.status = ''
+    resp.falhas = []
+  })
+}
+
+async function buscaDadosColaborador() {
+  const matricula = formData.usuario.matricula;
+
+  if (!matricula || matricula === 0 || matricula === '') {
+    alert("Digite a matrícula para buscar seus dados.")
+    return
+  }
+
+  if (matricula.length < 7) {
+    alert("Digite uma mnatricula válida. Lembre-se de colocar o 30 na frente.")
+    return;
+  }
+
+  const response = await axios.get(`http://10.100.1.43:2399/colaborador/${matricula}`)
+  const dadosColaborador = response.data.data
+  const mensagemApi = response.data.message
+  alert(mensagemApi)
+  console.log(dadosColaborador)
+
+  formData.usuario.nome = dadosColaborador.nome
+  formData.usuario.gerente = dadosColaborador.gerente
 }
 </script>
 
 <style scoped>
-
 .custom-select {
   padding: 12px;
   border-radius: 10px;
@@ -200,7 +258,8 @@ const handleSubmit = () => {
   outline: none;
   font-size: 14px;
   cursor: pointer;
-  appearance: none; /* Remove a seta padrão para estilizar */
+  appearance: none;
+  /* Remove a seta padrão para estilizar */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -226,11 +285,29 @@ const handleSubmit = () => {
   padding: 30px 15px;
   text-align: center;
 }
-.header h1 { margin: 0; font-size: 32px; color: #000; }
-.header h2 { margin: 5px 0; font-size: 20px; color: #000; opacity: 0.8; }
-.header p { margin-top: 10px; font-size: 14px; }
 
-.form { padding: 20px; }
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #000;
+}
+
+.header h2 {
+  margin: 5px 0;
+  font-size: 20px;
+  color: #000;
+  opacity: 0.8;
+}
+
+.header p {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.form {
+  padding: 20px;
+}
+
 h2 {
   font-size: 18px;
   color: #444;
@@ -244,8 +321,18 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
 }
-.field { display: flex; flex-direction: column; }
-.field label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #666;
+}
 
 .field input {
   padding: 12px;
@@ -256,9 +343,10 @@ h2 {
   outline: none;
   font-size: 14px;
 }
-.field input:focus { 
-  border-color: #9b39cc; 
-  background-color: #fff; 
+
+.field input:focus {
+  border-color: #9b39cc;
+  background-color: #fff;
   color: black;
 }
 
@@ -266,7 +354,7 @@ h2 {
   background: white;
   border-radius: 12px;
   margin-bottom: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   border: 1px solid #eee;
   overflow: hidden;
 }
@@ -279,10 +367,11 @@ h2 {
   gap: 20px;
 }
 
-.item-text { 
-  font-size: 15px; 
-  color: #333; flex: 1; 
-  padding-right: 15px; 
+.item-text {
+  font-size: 15px;
+  color: #333;
+  flex: 1;
+  padding-right: 15px;
   text-align: left;
 }
 
@@ -295,9 +384,19 @@ h2 {
   font-weight: bold;
 }
 
-.status-selector { display: flex; gap: 10px; }
-.status-btn { cursor: pointer; }
-.status-btn input { display: none; }
+.status-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.status-btn {
+  cursor: pointer;
+}
+
+.status-btn input {
+  display: none;
+}
+
 .circle {
   display: flex;
   align-items: center;
@@ -311,13 +410,13 @@ h2 {
   color: #888;
 }
 
-.conforme input:checked + .circle {
+.conforme input:checked+.circle {
   background-color: #4CAF50;
   border-color: #4CAF50;
   color: white;
 }
 
-.nao-conforme input:checked + .circle {
+.nao-conforme input:checked+.circle {
   background-color: #F44336;
   border-color: #F44336;
   color: white;
@@ -328,13 +427,20 @@ h2 {
   padding: 15px;
   border-top: 1px dashed #f44336;
 }
+
 .nc-title {
   margin: 0 0 10px 0;
   font-size: 13px;
   font-weight: bold;
   color: #d32f2f;
 }
-.nc-options { display: flex; gap: 20px; flex-wrap: wrap; }
+
+.nc-options {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -343,9 +449,18 @@ h2 {
   cursor: pointer;
   color: black;
 }
-.checkbox-label input { width: 18px; height: 18px; cursor: pointer; }
 
-.footer-actions { margin-top: 30px; text-align: center; }
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.footer-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
 .btn-submit {
   background: #9b39cc;
   color: white;
@@ -359,8 +474,17 @@ h2 {
   width: 100%;
   max-width: 400px;
 }
-.btn-submit:hover { background: #812ba3; }
 
-.slide-enter-active { transition: all 0.3s ease-out; }
-.slide-enter-from { opacity: 0; transform: translateY(-10px); }
+.btn-submit:hover {
+  background: #812ba3;
+}
+
+.slide-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 </style>
