@@ -12,13 +12,19 @@
         <div class="grid">
           <div class="field">
             <label>Matrícula:</label>
-            <input @keyup.enter="buscaDadosColaborador" v-model="formData.usuario.matricula" type="text"
-              placeholder="Digite sua matrícula" required>
+            <!-- <input @keyup.enter="buscaDadosColaborador" v-model="formData.usuario.matricula" type="text"
+              placeholder="Digite sua matrícula" required> -->
+            <input v-model="formData.usuario.matricula" type="text" placeholder="Digite sua matrícula" required>
           </div>
 
           <div class="field">
             <label>Nome:</label>
-            <span>{{ formData.usuario.nome }}</span>
+            <span class="field">{{ formData.usuario.nome }}</span>
+          </div>
+
+          <div class="field">
+            <label>Turno:</label>
+            <span>{{ formData.usuario.turno }}</span>
           </div>
 
           <div class="field">
@@ -85,6 +91,8 @@
 
       <div class="footer-actions">
         <button @click="handleSubmit" class="btn-submit">Enviar Checklist</button>
+
+        <button @click="testarApi">Testar api</button>
       </div>
     </div>
   </div>
@@ -117,7 +125,8 @@ const checklistData = [
       { id: 'a', label: 'Botão travado' },
       { id: 'b', label: 'Barreira obstruída' },
       { id: 'c', label: 'Porta sem trava' }
-    ]
+    ],
+    pergunta_index: 0
   },
   {
     pergunta: "Verificar pressão de alimentação da máquina ( 7 a 8 bar )",
@@ -125,7 +134,8 @@ const checklistData = [
       { id: 'a', label: 'Pressão menor que 7 bar' },
       { id: 'b', label: 'Pressão maior que 8 bar' },
       { id: 'c', label: 'Vazamento de ar' }
-    ]
+    ],
+    pergunta_index: 1
   },
   {
     pergunta: "Verificar limpeza e lubrificação do mandrino",
@@ -133,7 +143,8 @@ const checklistData = [
       { id: 'a', label: 'Limpeza' },
       { id: 'b', label: 'Lubrificação' },
       { id: 'c', label: 'Mandrino' }
-    ]
+    ],
+    pergunta_index: 2
   },
   {
     pergunta: "Verificar vazador (falta, altura do vazador, colocação de atilhos)",
@@ -141,7 +152,8 @@ const checklistData = [
       { id: 'a', label: 'Vazador faltando' },
       { id: 'b', label: 'Altura incorreta' },
       { id: 'c', label: 'Atilhos gastos' }
-    ]
+    ],
+    pergunta_index: 3
   },
   {
     pergunta: "Verificar a última peça cortada no teste de qualidade",
@@ -149,7 +161,8 @@ const checklistData = [
       { id: 'a', label: 'Peça com rebarba' },
       { id: 'b', label: 'Medida fora' },
       { id: 'c', label: 'Material rasgado' }
-    ]
+    ],
+    pergunta_index: 4
   },
   {
     pergunta: "Verificar tapete (material ou item inconforme)",
@@ -157,7 +170,8 @@ const checklistData = [
       { id: 'a', label: 'Tapete danificado' },
       { id: 'b', label: 'Sujeira acumulada' },
       { id: 'c', label: 'Material preso' }
-    ]
+    ],
+    pergunta_index: 5
   },
   {
     pergunta: "Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)",
@@ -165,25 +179,30 @@ const checklistData = [
       { id: 'a', label: 'Chave faltando' },
       { id: 'b', label: 'Vazadores faltando' },
       { id: 'c', label: 'Lâminas faltando' }
-    ]
+    ],
+    pergunta_index: 6
   }
 ]
 
 const formData = reactive({
   usuario: {
-    matricula: '',
-    celula: '',
-    turno: '',
-    maquina: '',
-    gerente: ''
+    matricula: '3020495',
+    celula: '3024',
+    turno: 'A',
+    maquina: 'ATOM 1 - Pat: 0133992',
+    gerente: 'gerente2',
+    turno: " turno A",
+    nome: "npome 2"
   },
-  respostas: checklistData.map(() => ({
+  respostas: checklistData.map((perg) => ({
     status: '',
-    falhas: []
+    falhas: [],
+    pergunta_index: perg.pergunta_index,
+    pergunta_text: perg.pergunta
   }))
 })
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   // 1. Verificaer campos do usuário 
   const { matricula, nome, turno, celula, maquina } = formData.usuario
   if (!matricula || !nome || !turno || !celula || !maquina) {
@@ -207,7 +226,22 @@ const handleSubmit = () => {
 
   // Se estiver preenchidos todos os itens, envia
   console.log("Dados Enviados:", JSON.parse(JSON.stringify(formData)))
-  alert("Checklist enviado com sucesso!")
+
+  const payload = {
+    nome: formData.usuario.nome,
+    matricula: formData.usuario.matricula,
+    celula: formData.usuario.celula,
+    turno: formData.usuario.turno,
+    maquina: formData.usuario.maquina,
+    gerente: formData.usuario.gerente,
+    respostas: formData.respostas // O array com pergunta_index, status e falhas
+  };
+
+  const response = await axios.post("http://localhost:3000/checklists", payload);
+  console.log(response.data);
+  
+
+  alert(`Checklist enviado com sucesso!`);
 
   // Limpar formulário
   // limpar dados do usuário
@@ -223,6 +257,7 @@ const handleSubmit = () => {
     resp.falhas = []
   })
 }
+
 
 async function buscaDadosColaborador() {
   const matricula = formData.usuario.matricula;
@@ -245,6 +280,18 @@ async function buscaDadosColaborador() {
 
   formData.usuario.nome = dadosColaborador.nome
   formData.usuario.gerente = dadosColaborador.gerente
+
+  try {
+    const response = await axios.post("http://seu-ip:3000/salvar-checklist", formData);
+    alert("Enviado! Protocolo: " + response.data.id);
+  } catch (err) {
+    alert("Erro ao salvar dados.");
+  }
+}
+
+const testarApi = async () => {
+  const response = await axios.get("http://localhost:3000/")
+  console.log(response.data);
 }
 </script>
 
