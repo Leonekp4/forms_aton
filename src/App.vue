@@ -12,9 +12,8 @@
         <div class="grid">
           <div class="field">
             <label>Matrícula:</label>
-            <!-- <input @keyup.enter="buscaDadosColaborador" v-model="formData.usuario.matricula" type="text"
-              placeholder="Digite sua matrícula" required> -->
-            <input v-model="formData.usuario.matricula" type="text" placeholder="Digite sua matrícula" required>
+            <input @keyup.enter="buscaDadosColaborador" v-model="formData.usuario.matricula" type="text"
+              placeholder="Digite sua matrícula" required>
           </div>
 
           <div class="field">
@@ -92,7 +91,7 @@
       <div class="footer-actions">
         <button @click="handleSubmit" class="btn-submit">Enviar Checklist</button>
 
-        <button @click="testarApi">Testar api</button>
+        <!-- <button @click="testarApi">Testar api</button> -->
       </div>
     </div>
   </div>
@@ -395,6 +394,16 @@ h2 {
   border-color: #9b39cc;
   background-color: #fff;
   color: black;
+}
+
+.field span {
+  display: block; 
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #e0e0e0; 
+  color: #333;
+  border: 1px solid #ccc;
+  min-height: 45px; 
 }
 
 .item-card {

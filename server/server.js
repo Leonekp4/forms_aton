@@ -46,17 +46,41 @@ app.post("/checklists", (req, res) => {
 app.get("/checklists", (req, res) => {
     const query = `
         SELECT 
-            c.nome, c.matricula, c.celula, c.turno, c.maquina, c.gerente, cr.status, cr.falhas
+            c.id,
+            c.nome, 
+            c.matricula, 
+            c.celula, 
+            c.turno, 
+            c.maquina, 
+            c.gerente, 
+            c.data_envio,
+            -- Agrupa as respostas em um formato JSON legível
+            json_group_array(
+                json_object(
+                    'pergunta', cr.pergunta_text,
+                    'status', cr.status,
+                    'falhas', cr.falhas
+                )
+            ) AS detalhes_respostas
         FROM 
             checklists c
-        INNER JOIN 
-            checklist_respostas cr on c.id = cr.checklist_id
+        LEFT JOIN 
+            checklist_respostas cr ON c.id = cr.checklist_id
+        GROUP BY 
+            c.id;
     `
 
     db.all(query, [], (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
+
+        console.log(rows);
+        let data = {
+            colaborador: {},
+            respostas: {}
+        };
+        
         res.json(rows);
     });
 });
