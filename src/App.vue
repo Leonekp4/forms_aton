@@ -260,7 +260,7 @@ const handleSubmit = async () => {
             respostas: formData.respostas // O array com pergunta_index, status e falhas
         };
 
-        await axios.post("http://localhost:3000/checklists", payload);
+        await axios.post("http://192.168.26.90:3000/checklists", payload);
 
         notificacao.value.mostrarAlerta("success", "done_outlined", "Sucesso!", "Checklist enviado com sucesso!");
 
