@@ -75,12 +75,6 @@ app.get("/checklists", (req, res) => {
             return res.status(500).json({ error: err.message });
         }
 
-        console.log(rows);
-        let data = {
-            colaborador: {},
-            respostas: {}
-        };
-        
         res.json(rows);
     });
 });
