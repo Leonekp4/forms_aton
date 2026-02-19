@@ -13,7 +13,10 @@
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "vue": "^3.5.25"
+    "material-design-icons-iconfont": "^6.7.0",
+    "material-icons": "^1.13.14",
+    "vue": "^3.5.25",
+    "vuetify": "^3.11.8"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.2",
