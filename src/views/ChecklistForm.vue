@@ -111,7 +111,7 @@ const notificacao = ref(null)
 
 // Opções para os campos de seleção
 const opcoes = {
-    celulas: ["0000", "1111"],
+    celulas: ["1294", "1111"],
     turnos: ["Turno A", "Turno B", "Turno C"],
     maquinas: [
         "Atom 1 - Pat:0133165",
@@ -158,7 +158,7 @@ const checklistData = [
         opcoesFalha: [
             { id: 'a', label: 'Vazador faltando' },
             { id: 'b', label: 'Altura incorreta' },
-            { id: 'c', label: 'Atilhos gastos' }
+            { id: 'c', label: 'Atilhos' }
         ],
         pergunta_index: 3
     },
@@ -323,6 +323,7 @@ async function buscaDadosColaborador() {
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 1em;
+    text-align-last: center;
 }
 
 .custom-select:focus {
@@ -331,8 +332,10 @@ async function buscaDadosColaborador() {
 }
 
 .container {
-    max-width: 900px;
-    margin: 0 auto;
+    /* max-width: 900px; */
+    width: 100%;
+    /* margin: 0 auto; */
+    margin: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
     background-color: #f9f9f9;
     min-height: 100vh;
@@ -365,6 +368,8 @@ async function buscaDadosColaborador() {
 
 .form {
     padding: 20px;
+    max-width: 60%;
+    margin: 0 auto;    
 }
 
 h2 {
@@ -377,7 +382,7 @@ h2 {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 15px;
 }
 
@@ -401,6 +406,7 @@ h2 {
     color: black;
     outline: none;
     font-size: 14px;
+    text-align: center;
 }
 
 .field input:focus {

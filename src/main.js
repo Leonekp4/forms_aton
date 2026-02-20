@@ -8,10 +8,12 @@ import "material-icons/iconfont/filled.css";
 import "material-icons/iconfont/material-icons.css";
 import "material-icons/iconfont/outlined.css";
 import "material-icons/iconfont/round.css";
+import '@mdi/font/css/materialdesignicons.css'
 
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import "vuetify/styles";
 
 const appInstance = createApp(App);
@@ -19,6 +21,13 @@ const appInstance = createApp(App);
 const vuetify = createVuetify({
   components,
   directives,
+  icons: {
+    defaultSet: 'mdi', // Define o MDI como padrão
+    aliases,
+    sets: {
+      mdi,
+    },
+  },
 });
 
 

@@ -56,7 +56,7 @@
         <v-col cols="12" md="6">
           <div class="chart-card">
             <h3 class="chart-title">Checklists por Máquina</h3>
-            <apexchart type="bar" height="300" :options="chartMaquinaOptions" :series="chartMaquinaSeries"></apexchart>
+            <apexchart class="text-black" type="bar" height="300" :options="chartMaquinaOptions" :series="chartMaquinaSeries"></apexchart>
           </div>
         </v-col>
       </v-row>
@@ -65,7 +65,7 @@
         <v-col cols="12">
           <div class="chart-card">
             <h3 class="chart-title">Principais Ocorrências (Falhas)</h3>
-            <apexchart type="bar" height="250" :options="chartFalhasOptions" :series="chartFalhasSeries"></apexchart>
+            <apexchart class="text-black" type="bar" height="250" :options="chartFalhasOptions" :series="chartFalhasSeries"></apexchart>
           </div>
         </v-col>
       </v-row>
@@ -73,22 +73,11 @@
       <div class="table-section">
         <h2 class="section-title">Histórico de Inspeções</h2>
         <v-card class="custom-table-card" elevation="0">
-          <v-data-table
-            :headers="headers"
-            :items="processedData"
-            item-value="id"
-            show-expand
-            v-model:expanded="expanded"
-            class="elevation-0"
-            hover
-          >
+          <v-data-table :headers="headers" :items="processedData" item-value="id" show-expand
+            v-model:expanded="expanded" class="elevation-0" hover>
             <template v-slot:item.status="{ item }">
-              <v-chip
-                :color="item.status === 'Conforme' ? 'success' : 'error'"
-                :text-color="item.status === 'Conforme' ? 'white' : 'white'"
-                size="small"
-                class="font-weight-bold"
-              >
+              <v-chip :color="item.status === 'Conforme' ? 'success' : 'error'"
+                :text-color="item.status === 'Conforme' ? 'white' : 'white'" size="small" class="font-weight-bold">
                 {{ item.status }}
               </v-chip>
             </template>
@@ -119,9 +108,11 @@
                         </div>
 
                         <div v-if="resp.status === 'NC'" class="nc-details">
-                          <p class="nc-title"><v-icon size="small" color="error" class="mr-1">mdi-alert</v-icon> Falhas Identificadas:</p>
+                          <p class="nc-title"><v-icon size="small" color="error" class="mr-1">mdi-alert</v-icon> Falhas
+                            Identificadas:</p>
                           <div class="nc-options">
-                            <v-chip v-for="(falha, fIdx) in resp.falhasParsed" :key="fIdx" color="error" size="small" variant="flat">
+                            <v-chip v-for="(falha, fIdx) in resp.falhasParsed" :key="fIdx" color="error" size="small"
+                              variant="flat">
                               {{ falha }}
                             </v-chip>
                           </div>
@@ -142,43 +133,60 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import apexchart from 'vue3-apexcharts'
+import axios from 'axios'
 
-// Dados simulados baseados no retorno da API fornecido
-const rawData = ref([
-  {
-    "id": 26,
-    "nome": "HENDRIUS FELIX CERQUEIRA GOMES DE SANTANA",
-    "matricula": "3020495",
-    "celula": "0000",
-    "turno": " turno A",
-    "maquina": "Atom 5 - Pat:0050254",
-    "gerente": "SERGIO GONCALVES DOS SANTOS",
-    "data_envio": "2026-02-18 13:12:21",
-    "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"C\",\"falhas\":\"[]\"}]"
-  },
-  {
-    "id": 27,
-    "nome": "LEONE BASTOS SANTANA",
-    "matricula": "3018962",
-    "celula": "0000",
-    "turno": " turno A",
-    "maquina": "Atom 7 - Pat:0115997",
-    "gerente": "SERGIO GONCALVES DOS SANTOS",
-    "data_envio": "2026-02-18 13:31:29",
-    "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"NC\",\"falhas\":\"[\\\"Atilhos gastos\\\"]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"NC\",\"falhas\":\"[\\\"Chave faltando\\\"]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"NC\",\"falhas\":\"[\\\"Limpeza\\\"]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"NC\",\"falhas\":\"[\\\"Porta sem trava\\\"]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"NC\",\"falhas\":\"[\\\"Pressão maior que 8 bar\\\"]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"NC\",\"falhas\":\"[\\\"Sujeira acumulada\\\"]\"}]"
-  },
-  {
-    "id": 28,
-    "nome": "LEONE BASTOS SANTANA",
-    "matricula": "3018962",
-    "celula": "0000",
-    "turno": "C",
-    "maquina": "Atom 7 - Pat:0115997",
-    "gerente": "SERGIO GONCALVES DOS SANTOS",
-    "data_envio": "2026-02-18 14:14:49",
-    "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"C\",\"falhas\":\"[]\"}]"
+// // Dados simulados baseados no retorno da API fornecido
+// const rawData = ref([
+//   {
+//     "id": 26,
+//     "nome": "HENDRIUS FELIX CERQUEIRA GOMES DE SANTANA",
+//     "matricula": "3020495",
+//     "celula": "0000",
+//     "turno": " turno A",
+//     "maquina": "Atom 5 - Pat:0050254",
+//     "gerente": "SERGIO GONCALVES DOS SANTOS",
+//     "data_envio": "2026-02-18 13:12:21",
+//     "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"C\",\"falhas\":\"[]\"}]"
+//   },
+//   {
+//     "id": 27,
+//     "nome": "LEONE BASTOS SANTANA",
+//     "matricula": "3018962",
+//     "celula": "0000",
+//     "turno": " turno A",
+//     "maquina": "Atom 7 - Pat:0115997",
+//     "gerente": "SERGIO GONCALVES DOS SANTOS",
+//     "data_envio": "2026-02-18 13:31:29",
+//     "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"NC\",\"falhas\":\"[\\\"Atilhos gastos\\\"]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"NC\",\"falhas\":\"[\\\"Chave faltando\\\"]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"NC\",\"falhas\":\"[\\\"Limpeza\\\"]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"NC\",\"falhas\":\"[\\\"Porta sem trava\\\"]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"NC\",\"falhas\":\"[\\\"Pressão maior que 8 bar\\\"]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"NC\",\"falhas\":\"[\\\"Sujeira acumulada\\\"]\"}]"
+//   },
+//   {
+//     "id": 28,
+//     "nome": "LEONE BASTOS SANTANA",
+//     "matricula": "3018962",
+//     "celula": "0000",
+//     "turno": "C",
+//     "maquina": "Atom 7 - Pat:0115997",
+//     "gerente": "SERGIO GONCALVES DOS SANTOS",
+//     "data_envio": "2026-02-18 14:14:49",
+//     "detalhes_respostas": "[{\"pergunta\":\"Verificar a última peça cortada no teste de qualidade\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar emergências, botão, barreiras de luz e portas das pinças\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar kit de ferramentas operacionais (chaves, vazadores, lâminas)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar limpeza e lubrificação do mandrino\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar pressão de alimentação da máquina ( 7 a 8 bar )\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar tapete (material ou item inconforme)\",\"status\":\"C\",\"falhas\":\"[]\"},{\"pergunta\":\"Verificar vazador (falta, altura do vazador, colocação de atilhos)\",\"status\":\"C\",\"falhas\":\"[]\"}]"
+//   }
+// ])
+
+// Busca checklists do banco de dados
+const dadosChecklist = ref([])
+async function buscarDados() {
+  try { 
+    const response = await axios.get("http://192.168.26.90:3000/checklists")
+    dadosChecklist.value = response.data
+    
+  } catch (error) {
+    console.error("Erro ao buscar solicitações");
+    
   }
-])
+}
+onMounted(() => {
+  buscarDados()
+})
 
 // Variáveis da Tabela
 const expanded = ref([])
@@ -193,7 +201,7 @@ const headers = [
 
 // Processamento de Dados
 const processedData = computed(() => {
-  return rawData.value.map(item => {
+  return dadosChecklist.value.map(item => {
     // Parse the JSON string
     const parsedRespostas = JSON.parse(item.detalhes_respostas).map(resp => {
       let parsedFalhas = []
@@ -318,10 +326,16 @@ const chartFalhasOptions = computed(() => {
 </script>
 
 <style scoped>
+.text-black {
+  color: #000
+}
+
 /* Base Styles mirroring the requested UI */
 .dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  /* max-width: 1200px; */
+  width: 100%;
+  /* margin: 0 auto; */
+  margin: 0;
   font-family: 'Segoe UI', Arial, sans-serif;
   background-color: #f4f5f7;
   min-height: 100vh;
@@ -333,7 +347,7 @@ const chartFalhasOptions = computed(() => {
   color: white;
   padding: 30px 15px;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
 }
 
@@ -359,6 +373,8 @@ const chartFalhasOptions = computed(() => {
 
 .content-wrapper {
   padding: 0 20px;
+  max-width: 90%;
+  margin: 0 auto;
 }
 
 /* KPI Cards */
