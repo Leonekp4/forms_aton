@@ -287,7 +287,7 @@ const chartFalhasSeries = computed(() => {
   const ocorrencias = {}
   processedData.value.forEach(checklist => {
     checklist.respostas.forEach(resp => {
-      resp.falhasParsed.forEach(falha => {
+      resp?.falhasParsed?.forEach(falha => {
         ocorrencias[falha] = (ocorrencias[falha] || 0) + 1
       })
     })
@@ -304,7 +304,7 @@ const chartFalhasOptions = computed(() => {
   const ocorrencias = {}
   processedData.value.forEach(checklist => {
     checklist.respostas.forEach(resp => {
-      resp.falhasParsed.forEach(falha => {
+      resp?.falhasParsed?.forEach(falha => {
         ocorrencias[falha] = (ocorrencias[falha] || 0) + 1
       })
     })
