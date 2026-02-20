@@ -79,4 +79,36 @@ app.get("/checklists", (req, res) => {
     });
 });
 
+app.patch("/clear", (req, res) => {
+  const { confirm_token } = req.query; // Pega o parâmetro da URL
+  const SECRET_TOKEN = "automacao123"; // Defina sua senha de segurança aqui
 
+  // 1. Validação de Segurança
+  if (!confirm_token || confirm_token !== SECRET_TOKEN) {
+    return res.status(403).json({ 
+      error: "Acesso negado. Token de confirmação inválido ou ausente." 
+    });
+  }
+
+  try {
+    const queries = [
+      "DELETE FROM checklist_respostas;",
+      "DELETE FROM checklists;",
+      "DELETE FROM sqlite_sequence WHERE name='checklists';", // Reseta o ID no SQLite
+      "DELETE FROM sqlite_sequence WHERE name='checklist_respostas';"
+    ];
+
+    // Executa cada comando (assumindo que você usa uma biblioteca como 'sqlite3' ou 'better-sqlite3')
+    queries.forEach(query => {
+      db.prepare(query).run(); // Ajuste o comando de acordo com seu driver (ex: db.run)
+    });
+
+    res.status(200).json({ 
+      message: "Banco de dados resetado com sucesso e IDs reiniciados." 
+    });
+
+  } catch (error) {
+    console.error("Erro ao resetar banco:", error);
+    res.status(500).json({ error: "Falha interna ao tentar limpar os dados." });
+  }
+});
